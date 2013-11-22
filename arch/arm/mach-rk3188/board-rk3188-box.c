@@ -179,6 +179,9 @@ static int rk29_backlight_io_deinit(void)
 	return ret;
 }
 
+#define STATUS_LED1 RK30_PIN0_PB4
+#define STATUS_LED2 RK30_PIN0_PB6
+
 static int rk29_backlight_pwm_suspend(void)
 {
 	int ret = 0, pwm_gpio;
@@ -193,6 +196,10 @@ static int rk29_backlight_pwm_suspend(void)
 	gpio_direction_output(BL_EN_PIN, 0);
 	gpio_set_value(BL_EN_PIN, !BL_EN_VALUE);
 #endif
+
+	gpio_direction_output(STATUS_LED1, GPIO_HIGH);
+	gpio_direction_output(STATUS_LED2, GPIO_HIGH);
+
 	return ret;
 }
 
@@ -207,6 +214,10 @@ static int rk29_backlight_pwm_resume(void)
 	gpio_direction_output(BL_EN_PIN, 1);
 	gpio_set_value(BL_EN_PIN, BL_EN_VALUE);
 #endif
+
+	gpio_direction_output(STATUS_LED1, GPIO_LOW);
+	gpio_direction_output(STATUS_LED2, GPIO_LOW);
+
 	return 0;
 }
 
@@ -2006,6 +2017,11 @@ static void __init machine_rk30_board_init(void)
 	
 	gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
 
+	gpio_request(STATUS_LED1, "led1");
+	gpio_direction_output(STATUS_LED1, GPIO_LOW);
+
+	gpio_request(STATUS_LED2, "led2");
+	gpio_direction_output(STATUS_LED2, GPIO_LOW);
 
 	rk30_i2c_register_board_info();
 	spi_register_board_info(board_spi_devices, ARRAY_SIZE(board_spi_devices));
