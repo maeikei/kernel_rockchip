@@ -247,8 +247,10 @@ int check_wifi_type_from_id(int id, char * _buf) {
 extern int rk29sdk_wifi_power(int on);
 extern int wifi_activate_usb(void);
 extern int wifi_deactivate_usb(void);
-#define USB_IDP_SYS_PATCH_1 "/sys/bus/usb/devices/1-1/idProduct"
-#define USB_IDP_SYS_PATCH_2 "/sys/bus/usb/devices/2-1/idProduct"
+#define USB_IDP_SYS_PATCH_1 "/sys/bus/usb/devices/2-1.1/idProduct"
+#define USB_IDP_SYS_PATCH_2 "/sys/bus/usb/devices/2-1.2/idProduct"
+#define USB_IDP_SYS_PATCH_3 "/sys/bus/usb/devices/2-1.3/idProduct"
+#define USB_IDP_SYS_PATCH_4 "/sys/bus/usb/devices/2-1.4/idProduct"
 #define USB_IDV_SYS_PATCH_1 "/sys/bus/usb/devices/1-1/idVendor"
 #define USB_IDV_SYS_PATCH_2 "/sys/bus/usb/devices/2-1/idVendor"
 #define USB_PRODUCT_SYS_PATCH "/sys/bus/usb/devices/1-1/product"
@@ -277,22 +279,45 @@ static ssize_t wifi_aidc_read(struct class *cls, char *_buf)
 		old_fs = get_fs();
 		set_fs(KERNEL_DS);
 		while(retry--) {
-			file = filp_open(USB_IDP_SYS_PATCH_2, O_RDONLY, 0);
-			if (IS_ERR(file)) {
-				printk("\nCannot open \"%s\", retry = %d\n", USB_IDP_SYS_PATCH_2, retry);
 				file = filp_open(USB_IDP_SYS_PATCH_1, O_RDONLY, 0);
 				if (IS_ERR(file)) {
 		       		printk("\nCannot open \"%s\", retry = %d\n", USB_IDP_SYS_PATCH_1, retry);
-					msleep(500);
+							msleep(50);
 					continue;
 				}
+			break;
 			}
+		if(retry <= 0) {
+			set_fs(old_fs);
+		}else{
+			usbid[0] = 0;
+		nread = vfs_read(file, (char __user *)usbid, sizeof(usbid), &pos);
+		set_fs(old_fs);
+		filp_close(file, NULL);
+		idP = simple_strtol(usbid, NULL, 16);
+		printk("Get usb wifi idProduct = 0X%04X\n", idP);
+		count = check_wifi_type_from_id(idP, _buf);
+	}
+		if(count==0)
+		{
+			retry = 10;
+			pos = 0;
+			idP = 0;
+		old_fs = get_fs();
+		set_fs(KERNEL_DS);
+				while(retry--) {
+			file = filp_open(USB_IDP_SYS_PATCH_2, O_RDONLY, 0);
+			if (IS_ERR(file)) {
+				printk("\nCannot open \"%s\", retry = %d\n", USB_IDP_SYS_PATCH_2, retry);
+						msleep(50);
+						continue;
+				}
 			break;
     	}
 		if(retry <= 0) {
 			set_fs(old_fs);
-			return count;
-		}
+		}else{
+			usbid[0] = 0;
 		nread = vfs_read(file, (char __user *)usbid, sizeof(usbid), &pos);
 		set_fs(old_fs);
 		filp_close(file, NULL);
@@ -300,7 +325,67 @@ static ssize_t wifi_aidc_read(struct class *cls, char *_buf)
 		idP = simple_strtol(usbid, NULL, 16);
 		printk("Get usb wifi idProduct = 0X%04X\n", idP);
 		count = check_wifi_type_from_id(idP, _buf);
-
+		}
+	}
+		if(count==0)
+		{
+			retry = 10;
+			pos = 0;
+			idP = 0;
+		old_fs = get_fs();
+		set_fs(KERNEL_DS);
+				while(retry--) {
+			file = filp_open(USB_IDP_SYS_PATCH_3, O_RDONLY, 0);
+			if (IS_ERR(file)) {
+				printk("\nCannot open \"%s\", retry = %d\n", USB_IDP_SYS_PATCH_3, retry);
+					msleep(50);
+					continue;
+		}
+			break;
+    	}
+		if(retry <= 0) {
+			set_fs(old_fs);
+		}else
+		{
+			printk("\nopen \"%s\", retry = %d\n", USB_IDP_SYS_PATCH_3, retry);
+			usbid[0] = 0;
+		nread = vfs_read(file, (char __user *)usbid, sizeof(usbid), &pos);
+		set_fs(old_fs);
+		filp_close(file, NULL);
+		wifi_deactivate_usb();
+		idP = simple_strtol(usbid, NULL, 16);
+		printk("Get usb wifi idProduct = 0X%04X\n", idP);
+		count = check_wifi_type_from_id(idP, _buf);
+		}
+		}
+		if(count==0)
+		{
+			retry = 10;pos = 0;idP = 0;
+		old_fs = get_fs();
+		set_fs(KERNEL_DS);
+				while(retry--) {
+					file = filp_open(USB_IDP_SYS_PATCH_4, O_RDONLY, 0);
+				if (IS_ERR(file)) {
+		       		printk("\nCannot open \"%s\", retry = %d\n", USB_IDP_SYS_PATCH_4, retry);						
+							msleep(50);
+							continue;
+			}
+			break;
+    	}
+		if(retry <= 0) {
+			set_fs(old_fs);
+		}else
+		{
+			usbid[0] = 0;
+		nread = vfs_read(file, (char __user *)usbid, sizeof(usbid), &pos);
+		set_fs(old_fs);
+		filp_close(file, NULL);
+		idP = simple_strtol(usbid, NULL, 16);
+		printk("Get usb wifi idProduct = 0X%04X\n", idP);
+		count = check_wifi_type_from_id(idP, _buf);
+		}
+	}
+	wifi_deactivate_usb();
         return count;
 }
 #endif //CONFIG_AIDC
