@@ -96,6 +96,7 @@ static int rk30_rmii_power_control(int enable)
                 	regulator_put(ldo_33);
 		}
 #else
+
 		//gpio_direction_output(RK30_PIN3_PD2, GPIO_LOW);
 		gpio_set_value(RK30_PIN3_PD2, GPIO_LOW);
 		msleep(20);
