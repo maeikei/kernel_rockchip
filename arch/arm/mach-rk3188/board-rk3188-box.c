@@ -2003,7 +2003,7 @@ static void rk30_pm_power_off(void)
 	gpio_direction_output(POWER_ON_PIN, GPIO_LOW);
 	while (1);
 }
-
+#define WIFI_EN_PIN RK30_PIN3_PA0
 static void __init machine_rk30_board_init(void)
 {
 	avs_init();
@@ -2016,7 +2016,16 @@ static void __init machine_rk30_board_init(void)
 
 	gpio_request(STATUS_LED1, "led1");
 	gpio_direction_output(STATUS_LED1, GPIO_LOW);
-	
+       
+        //wifi power
+        {
+	  iomux_set(GPIO3_A0);
+          gpio_request(WIFI_EN_PIN, "wifi_pwr");
+          gpio_direction_output(WIFI_EN_PIN, GPIO_LOW);
+	  gpio_set_value(WIFI_EN_PIN, GPIO_LOW);
+	  msleep(100);
+	  gpio_set_value(WIFI_EN_PIN, GPIO_HIGH);
+         }	
 
 	gpio_request(STATUS_LED2, "led2");
 	gpio_direction_output(STATUS_LED2, GPIO_LOW);
