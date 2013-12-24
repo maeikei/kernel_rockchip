@@ -966,7 +966,7 @@ static int rk3188_lcdc_early_suspend(struct rk_lcdc_device_driver *dev_drv)
 	}
 
 	mdelay(25);
-	rk3188_lcdc_clk_disable(lcdc_dev);
+	//rk3188_lcdc_clk_disable(lcdc_dev);
 	return 0;
 }
 
@@ -1264,17 +1264,19 @@ static int rk3188_fb_get_layer(struct rk_lcdc_device_driver *dev_drv,const char 
 	mutex_lock(&dev_drv->fb_win_id_mutex);
 	if(!strcmp(id,"fb0")||!strcmp(id,"fb2"))
 	{
-		if(dev_drv->overlay)
-			layer_id = dev_drv->fb1_win_id;
-		else
-			layer_id = dev_drv->fb0_win_id;
-	}
-	else if(!strcmp(id,"fb1")||!strcmp(id,"fb3"))
-	{
-		if(dev_drv->overlay)
-			layer_id = dev_drv->fb0_win_id;
-		else
-			layer_id = dev_drv->fb1_win_id;
+	       #ifdef CONFIG_LCDC_OVERLAY_ENABLE
+               layer_id = dev_drv->fb1_win_id;
+               #else
+               layer_id = dev_drv->fb0_win_id;
+               #endif
+       }
+       else if(!strcmp(id,"fb1")||!strcmp(id,"fb3"))
+       {
+               #ifdef CONFIG_LCDC_OVERLAY_ENABLE
+               layer_id = dev_drv->fb0_win_id;
+               #else
+               layer_id = dev_drv->fb1_win_id;
+               #endif
 	}
 	mutex_unlock(&dev_drv->fb_win_id_mutex);
 	

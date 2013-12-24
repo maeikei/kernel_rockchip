@@ -655,10 +655,10 @@ static int rk_fb_set_par(struct fb_info *info)
 			par2->smem_start = par->smem_start;
 			par2->cbr_start = par->cbr_start;
 			screen = dev_drv1->cur_screen;
-			par2->xpos = (screen->x_res - screen->x_res*dev_drv->x_scale/100)>>1;
-			par2->ypos = (screen->y_res - screen->y_res*dev_drv->y_scale/100)>>1;
-			par2->xsize = screen->x_res * dev_drv->x_scale/100;
-			par2->ysize = screen->y_res * dev_drv->y_scale/100;
+			par2->xpos = (screen->x_res - screen->x_res*dev_drv1->x_scale/100)>>1;
+			par2->ypos = (screen->y_res - screen->y_res*dev_drv1->y_scale/100)>>1;
+			par2->xsize = screen->x_res * dev_drv1->x_scale/100;
+			par2->ysize = screen->y_res * dev_drv1->y_scale/100;
 			par2->xvir = par->xvir;
 			par2->yvir = par->yvir;
 			info2->var.nonstd &= 0xffffff00;
