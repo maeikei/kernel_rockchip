@@ -2113,6 +2113,7 @@ static void rk30_pm_power_off(void)
 #define RADXA_STATUS_LED1 RK30_PIN0_PB4
 #define RADXA_STATUS_LED2 RK30_PIN0_PB6
 
+#define WIFI_EN_PIN RK30_PIN3_PA0
 static void __init machine_rk30_board_init(void)
 {
 	avs_init();
@@ -2125,6 +2126,15 @@ static void __init machine_rk30_board_init(void)
 
 	gpio_request(RADXA_STATUS_LED1, "led1");
 	gpio_direction_output(RADXA_STATUS_LED1, GPIO_LOW);
+       
+	//wifi power
+	iomux_set(GPIO3_A0);
+	gpio_request(WIFI_EN_PIN, "wifi_pwr");
+	gpio_direction_output(WIFI_EN_PIN, GPIO_LOW);
+	gpio_set_value(WIFI_EN_PIN, GPIO_LOW);
+	msleep(100);
+	gpio_set_value(WIFI_EN_PIN, GPIO_HIGH);
+
 
 	rk30_i2c_register_board_info();
 	spi_register_board_info(board_spi_devices, ARRAY_SIZE(board_spi_devices));
