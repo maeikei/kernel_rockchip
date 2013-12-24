@@ -49,6 +49,7 @@
 #include <linux/string.h>
 #include <linux/dma-mapping.h>
 #include <linux/irq.h>
+#include <mach/gpio.h>
 #include <linux/platform_device.h>
 #include "usbdev_rk.h"
 
@@ -163,7 +164,8 @@ static int dwc_otg_hcd_resume(struct usb_hcd *hcd)
         return 0;
 #endif
     DWC_PRINT("%s resume, HPRT0:0x%x\n",hcd->self.bus_name,hprt0.d32);
-    if(hprt0.b.prtconnsts)
+    //if(hprt0.b.prtconnsts)
+    if((hprt0.b.prtconnsts == 1) && (hprt0.b.prtsusp == 1))
     {
         //hprt0.d32 = dwc_read_reg32(core_if->host_if->hprt0);
         //DWC_PRINT("%s, HPRT0:0x%x\n",hcd->self.bus_name,hprt0.d32);
@@ -189,6 +191,12 @@ static int dwc_otg_hcd_resume(struct usb_hcd *hcd)
         //DWC_PRINT("%s, HPRT0:0x%x\n",hcd->self.bus_name,hprt0.d32);
     	
         mdelay(10);
+    }
+    else if(hprt0.b.prtsusp == 0)    
+    {        //FE1.1  hub is in abnormal suspend state, reset it
+             gpio_set_value(RK30_PIN0_PA3, GPIO_LOW);
+             mdelay(100);
+             gpio_set_value(RK30_PIN0_PA3, GPIO_HIGH);
     }
     else{
         if(pldata->phy_suspend) 
