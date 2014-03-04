@@ -95,7 +95,24 @@ struct rkxx_remotectl_drvdata {
     //184      //rorate_right
     //185      //zoom out
     //186      //zoom in
-    
+
+static struct rkxx_remote_key_table remote_key_table_ruisha[] = {
+                {0x2, KEY_VOLUMEUP},
+                {0xc0, KEY_VOLUMEDOWN},
+                {0x52, KEY_MENU},
+                {0xa2, KEY_REPLY},
+                {0xe0, KEY_BACK},
+                {0x62, KEY_UP},
+                {0x22, KEY_DOWN},
+                {0x82, KEY_LEFT},
+                {0x92, KEY_RIGHT},
+                {0x42, KEY_HOME},
+                {0xd2, KEY_MUTE}, 
+                {0xc2, KEY_POWER},//ok
+                {0xe2, 388},//mouse switch 
+ };
+ 
+ 
 static struct rkxx_remote_key_table remote_key_table_meiyu_202[] = {
     {0xB0, KEY_REPLY},//ok = DPAD CENTER
     {0xA2, KEY_BACK}, 
@@ -160,6 +177,11 @@ static struct rkxx_remotectl_button remotectl_button[] =
        .usercode = 0xdf, 
        .nbuttons =  16, 
        .key_table = &remote_key_table_df[0],
+    },
+	{  
+       .usercode = 0xff, 
+       .nbuttons =  13, 
+       .key_table = &remote_key_table_ruisha[0],
     },
 };
 
@@ -247,7 +269,7 @@ static void remotectl_do_something(unsigned long  data)
             }
 
             if (ddata->count == 0x10){//16 bit user code
-               // printk("u=0x%x\n",((ddata->scanData)&0xFFFF));
+                //printk("u=0x%x\n",((ddata->scanData)&0xFFFF));
                 if (remotectl_keybdNum_lookup(ddata)){
                     ddata->state = RMC_GETDATA;
                     ddata->scanData = 0;
@@ -269,7 +291,7 @@ static void remotectl_do_something(unsigned long  data)
                 ddata->scanData |= 0x01;
             }           
             if (ddata->count == 0x10){
-               // printk(KERN_ERR "d=%x\n",(ddata->scanData&0xFFFF));
+                //printk(KERN_ERR "d=%x\n",(ddata->scanData&0xFFFF));
 
                 if ((ddata->scanData&0x0ff) == ((~ddata->scanData >> 8)&0x0ff)){
                     if (remotectl_keycode_lookup(ddata)){
@@ -467,7 +489,6 @@ static int __devinit remotectl_probe(struct platform_device *pdev)
     int irq;
     int error = 0;
 
-    printk("++++++++remotectl_probe\n");
 
     if(!pdata) 
         return -EINVAL;
