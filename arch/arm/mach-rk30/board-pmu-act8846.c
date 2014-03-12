@@ -39,12 +39,25 @@ static int act8846_set_init(struct act8846 *act8846)
 	{
                 if(act8846_ldo_info[i].min_uv == 0 && act8846_ldo_info[i].max_uv == 0)
                         continue;
-	        ldo =regulator_get(NULL, act8846_ldo_info[i].name);
-	        regulator_set_voltage(ldo, act8846_ldo_info[i].min_uv, act8846_ldo_info[i].max_uv);
-	        regulator_enable(ldo);
-	        printk("%s  %s =%dmV end\n", __func__,act8846_ldo_info[i].name, regulator_get_voltage(ldo));
-	        regulator_put(ldo);
+        if (i != 2)
+        {
+            ldo =regulator_get(NULL, act8846_ldo_info[i].name);
+            regulator_set_voltage(ldo, act8846_ldo_info[i].min_uv, act8846_ldo_info[i].max_uv);
+            regulator_enable(ldo);
+            printk("%s  %s =%dmV end\n", __func__,act8846_ldo_info[i].name, regulator_get_voltage(ldo));
+            regulator_put(ldo);
+        }
 	}
+
+    {
+        mdelay(30);
+        i = 2;
+        ldo =regulator_get(NULL, act8846_ldo_info[i].name);
+        regulator_set_voltage(ldo, act8846_ldo_info[i].min_uv, act8846_ldo_info[i].max_uv);
+        regulator_enable(ldo);
+        printk("%s  %s =%dmV end\n", __func__,act8846_ldo_info[i].name, regulator_get_voltage(ldo));
+        regulator_put(ldo);
+    }
 
 	#ifdef CONFIG_RK_CONFIG
 	if(sram_gpio_init(get_port_config(pmic_slp).gpio, &pmic_sleep) < 0){
