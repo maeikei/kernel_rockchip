@@ -26,6 +26,11 @@
 #include <linux/clk.h>
 #include <linux/cpufreq.h>
 
+#ifdef CONFIG_LEDS_TRIGGERS
+#include <linux/leds.h>
+DEFINE_LED_TRIGGER(rknand_led_trigger);
+#endif
+
 #define DRIVER_NAME	"rk29xxnand"
 
 const char rknand_base_version[] = "rknand_base.c version: 4.40 20130420";
@@ -196,7 +201,13 @@ static int rknand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	*retlen = len;
     if(sector && gpNandInfo->ftl_read)
     {
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_FULL);
+#endif
 		ret = gpNandInfo->ftl_read(LBA, sector, buf);
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_OFF);
+#endif
 		if(ret)
 		   *retlen = 0;
     }
@@ -220,6 +231,9 @@ static int rknand_write(struct mtd_info *mtd, loff_t from, size_t len,
     //printk_write_log(LBA,sector,buf);
 	if(sector && gpNandInfo->ftl_write)// cmy
 	{
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_FULL);
+#endif
 		if(LBA < SysImageWriteEndAdd)//0x4E000)
 		{
 			//NAND_DEBUG(NAND_DEBUG_LEVEL0,">>> FtlWriteImage: LBA=0x%08X  sector=%d\n",LBA, sector);
@@ -229,6 +243,9 @@ static int rknand_write(struct mtd_info *mtd, loff_t from, size_t len,
         {
             ret = gpNandInfo->ftl_write(LBA, sector, (void *)buf,0);
         }
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_OFF);
+#endif
 	}
 	*retlen = len;
 	return 0;
@@ -242,7 +259,13 @@ static int rknand_diacard(struct mtd_info *mtd, loff_t from, size_t len)
 	//printk("rknand_diacard: from=%x,sector=%x,\n",(int)LBA,sector);
     if(sector && gpNandInfo->ftl_discard)
     {
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_FULL);
+#endif
 		ret = gpNandInfo->ftl_discard(LBA, sector);
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_OFF);
+#endif
     }
 	return ret;
 }
@@ -259,7 +282,15 @@ static void rknand_sync(struct mtd_info *mtd)
 {
 	NAND_DEBUG(NAND_DEBUG_LEVEL0,"rk_nand_sync: \n");
     if(gpNandInfo->ftl_sync)
+    {
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_FULL);
+#endif
         gpNandInfo->ftl_sync();
+#ifdef CONFIG_LEDS_TRIGGERS
+		led_trigger_event(rknand_led_trigger, LED_OFF);
+#endif
+    }
 }
 
 extern void FtlWriteCacheEn(int);
@@ -602,11 +633,17 @@ static int __init rknand_init(void)
 	NAND_DEBUG(NAND_DEBUG_LEVEL0,"rknand_init: \n");
 	ret = platform_driver_register(&rknand_driver);
 	NAND_DEBUG(NAND_DEBUG_LEVEL0,"platform_driver_register:ret = %x \n",ret);
+#ifdef CONFIG_LEDS_TRIGGERS
+	led_trigger_register_simple("rknand", &rknand_led_trigger);
+#endif
 	return ret;
 }
 
 static void __exit rknand_exit(void)
 {
+#ifdef CONFIG_LEDS_TRIGGERS
+	led_trigger_unregister_simple(rknand_led_trigger);
+#endif
     platform_driver_unregister(&rknand_driver);
 }
 
