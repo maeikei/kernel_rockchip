@@ -1202,6 +1202,21 @@ static struct gpio_led rk3188_leds[] = {
 	},
 	#endif
 #endif
+	{
+		.name = "green",
+		.gpio = RK30_PIN0_PB4,
+		.active_low = 1,
+	},
+	{
+		.name = "blue",
+		.gpio = RK30_PIN0_PB6,
+		.active_low = 1,
+	},
+	{
+		.name = "red",
+		.gpio = RK30_PIN0_PB7,
+		.default_state = LEDS_GPIO_DEFSTATE_ON,
+	},
 };
 
 static struct gpio_led_platform_data rk3188_leds_pdata = {
@@ -1306,8 +1321,8 @@ static struct rkdisplay_platform_data tv_data = {
 	.property 		= DISPLAY_MAIN,
 	.video_source 	= DISPLAY_SOURCE_LCDC0,
 	.io_pwr_pin 	= INVALID_GPIO,
-	.io_reset_pin 	= RK30_PIN3_PD4,
-	.io_switch_pin	= RK30_PIN2_PD7,
+	.io_reset_pin 	= RK30_PIN3_PD7,
+	.io_switch_pin	= INVALID_GPIO,
 };
 #endif
 
@@ -1420,7 +1435,7 @@ static struct i2c_board_info __initdata i2c0_info[] = {
 int __sramdata g_pmic_type =  0;
 #ifdef CONFIG_I2C1_RK30
 #ifdef CONFIG_REGULATOR_ACT8846
-#define PMU_POWER_SLEEP RK30_PIN0_PA1
+#define PMU_POWER_SLEEP INVALID_GPIO
 #define PMU_VSEL RK30_PIN3_PD3
 #define ACT8846_HOST_IRQ                RK30_PIN0_PB3
 
@@ -2117,7 +2132,9 @@ static void __init machine_rk30_board_init(void)
 	spi_register_board_info(board_spi_devices, ARRAY_SIZE(board_spi_devices));
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 	rk_platform_add_display_devices();
+#ifndef CONFIG_RK_USB_DETECT_BY_OTG_BVALID
 	board_usb_detect_init(RK30_PIN0_PA7);
+#endif
 
 #ifdef CONFIG_WIFI_CONTROL_FUNC
 	rk29sdk_wifi_bt_gpio_control_init();

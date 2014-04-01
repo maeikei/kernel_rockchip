@@ -72,8 +72,8 @@ int rk31sdk_get_sdmmc0_pin_io_voltage(void)
 */          
 #if defined(CONFIG_RTL8192CU) || defined(CONFIG_RTL8188EU) || defined(CONFIG_RTL8723AU) \
 	|| defined(CONFIG_RTL8192DU)
-    #define RK30SDK_WIFI_GPIO_POWER_N               RK30_PIN3_PD0            
-    #define RK30SDK_WIFI_GPIO_POWER_ENABLE_VALUE    GPIO_LOW//GPIO_HIGH        
+    #define RK30SDK_WIFI_GPIO_POWER_N               RK30_PIN3_PA0
+    #define RK30SDK_WIFI_GPIO_POWER_ENABLE_VALUE    GPIO_HIGH
     
 #elif defined(CONFIG_BCM4329) || defined(CONFIG_BCM4319) || defined(CONFIG_RKWIFI) \
 	|| defined(CONFIG_RTL8189ES) || defined(CONFIG_RTL8723BS)
