@@ -1204,11 +1204,17 @@ static struct gpio_led rk3188_leds[] = {
 #endif
 	{
 		.name = "green",
+#ifdef CONFIG_LEDS_TRIGGERS
+		.default_trigger = "rknand",
+#endif
 		.gpio = RK30_PIN0_PB4,
 		.active_low = 1,
 	},
 	{
 		.name = "blue",
+#ifdef CONFIG_LEDS_TRIGGERS
+		.default_trigger = "mmc0",
+#endif
 		.gpio = RK30_PIN0_PB6,
 		.active_low = 1,
 	},
