@@ -172,6 +172,9 @@ static int rk29_backlight_io_deinit(void)
 	return ret;
 }
 
+#define STATUS_LED1 RK30_PIN0_PB4
+#define STATUS_LED2 RK30_PIN0_PB6
+
 static int rk29_backlight_pwm_suspend(void)
 {
 	int ret = 0, pwm_gpio;
@@ -186,6 +189,10 @@ static int rk29_backlight_pwm_suspend(void)
 	gpio_direction_output(BL_EN_PIN, 0);
 	gpio_set_value(BL_EN_PIN, !BL_EN_VALUE);
 #endif
+
+	gpio_direction_output(STATUS_LED1, GPIO_HIGH);
+	gpio_direction_output(STATUS_LED2, GPIO_HIGH);
+
 	return ret;
 }
 
@@ -200,6 +207,10 @@ static int rk29_backlight_pwm_resume(void)
 	gpio_direction_output(BL_EN_PIN, 1);
 	gpio_set_value(BL_EN_PIN, BL_EN_VALUE);
 #endif
+
+	gpio_direction_output(STATUS_LED1, GPIO_LOW);
+	gpio_direction_output(STATUS_LED2, GPIO_LOW);
+
 	return 0;
 }
 
@@ -1322,8 +1333,8 @@ static struct rkdisplay_platform_data tv_data = {
 	#endif
 	.video_source 	= DISPLAY_SOURCE_LCDC0,
 	.io_pwr_pin 	= INVALID_GPIO,
-	.io_reset_pin 	= RK30_PIN3_PD4,
-	.io_switch_pin	= RK30_PIN2_PD7,
+	.io_reset_pin 	= RK30_PIN3_PD7,
+	.io_switch_pin	= INVALID_GPIO,//RK30_PIN2_PD7,
 };
 #endif
 #if defined (CONFIG_RK_VGA)
@@ -1506,8 +1517,8 @@ static  struct pmu_info  act8846_ldo_info[] = {
 	},
 	{
 		.name          = "act_ldo6",   //vcc_jetta
-		.min_uv          = 1800000,
-		.max_uv         = 1800000,
+		.min_uv          = 3300000,
+		.max_uv         = 3300000,
 	},
 	{
 		.name          = "act_ldo7",   //vcc18
@@ -2012,7 +2023,7 @@ static void rk30_pm_power_off(void)
 	gpio_direction_output(POWER_ON_PIN, GPIO_LOW);
 	while (1);
 }
-
+#define WIFI_EN_PIN RK30_PIN3_PA0
 static void __init machine_rk30_board_init(void)
 {
 	avs_init();
@@ -2023,6 +2034,21 @@ static void __init machine_rk30_board_init(void)
 	
 	gpio_direction_output(POWER_ON_PIN, GPIO_HIGH);
 
+	gpio_request(STATUS_LED1, "led1");
+	gpio_direction_output(STATUS_LED1, GPIO_LOW);
+       
+        //wifi power
+        {
+	  iomux_set(GPIO3_A0);
+          gpio_request(WIFI_EN_PIN, "wifi_pwr");
+          gpio_direction_output(WIFI_EN_PIN, GPIO_LOW);
+	  gpio_set_value(WIFI_EN_PIN, GPIO_LOW);
+	  msleep(100);
+	  gpio_set_value(WIFI_EN_PIN, GPIO_HIGH);
+         }	
+
+	gpio_request(STATUS_LED2, "led2");
+	gpio_direction_output(STATUS_LED2, GPIO_LOW);
 
 	rk30_i2c_register_board_info();
 	spi_register_board_info(board_spi_devices, ARRAY_SIZE(board_spi_devices));
@@ -2090,7 +2116,7 @@ static struct cpufreq_frequency_table dvfs_arm_table[] = {
         {.frequency = 1008 * 1000,      .index = 1075 * 1000},
         {.frequency = 1200 * 1000,      .index = 1150 * 1000},
         {.frequency = 1416 * 1000,      .index = 1250 * 1000},
-        {.frequency = 1608 * 1000,      .index = 1350 * 1000},
+        {.frequency = 1608 * 1000,      .index = 1375 * 1000},
 
 
 	{.frequency = CPUFREQ_TABLE_END},
@@ -2111,7 +2137,7 @@ static struct cpufreq_frequency_table dvfs_ddr_table[] = {
 	//{.frequency = 200 * 1000 + DDR_FREQ_SUSPEND,    .index = 950 * 1000},
 	{.frequency = 300 * 1000 + DDR_FREQ_VIDEO,      .index = 1000 * 1000},
 	{.frequency = 400 * 1000 + DDR_FREQ_NORMAL,     .index = 1100 * 1000},
-	{.frequency = 600 * 1000 + DDR_FREQ_NORMAL,     .index = 1250 * 1000},
+       //{.frequency = 600 * 1000 + DDR_FREQ_NORMAL,     .index = 1250 * 1000},
 	{.frequency = CPUFREQ_TABLE_END},
 };
 static struct cpufreq_frequency_table dvfs_ddr_table_t[] = {
