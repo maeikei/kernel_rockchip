@@ -1,3 +1,4 @@
+# $_FOR_ROCKCHIP_RBOX_$
 obj-$(CONFIG_LCD_NULL) += lcd_null.o
 
 obj-$(CONFIG_LCD_RK2928) += lcd_rk2928.o
@@ -37,6 +38,11 @@ obj-$(CONFIG_LCD_AT070TNA2)    += lcd_AT070TNA2.o
 obj-$(CONFIG_LCD_TX23D88VM) += lcd_tx23d88vm.o
 obj-$(CONFIG_LCD_AT070TN93)    += lcd_at070tn93.o
 obj-$(CONFIG_LCD_A050VL01)    += lcd_A050VL01.o
+#$_rbox_$_modify_$_zhengyang added for box default framebuffer size
+obj-$(CONFIG_BOX_FB_480P) += lcd_480p.o
+obj-$(CONFIG_BOX_FB_720P) += lcd_720p.o
+obj-$(CONFIG_BOX_FB_1080P) += lcd_1080p.o
+#$_rbox_$_modify_$_end
 obj-$(CONFIG_LCD_B101EW05)    += lcd_b101ew05.o
 obj-$(CONFIG_LCD_HJ050NA_06A)    += lcd_hj050na_06a.o
 obj-$(CONFIG_LCD_HSD100PXN_FOR_TDW851) += lcd_hsd100pxn_for_tdw851.o

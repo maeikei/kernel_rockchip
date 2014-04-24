@@ -1,3 +1,6 @@
+/*$_FOR_ROCKCHIP_RBOX_$*/
+/*$_rbox_$_modify_$_huangzhibao 20120528*/
+
 /*
  * rk29_i2s.c  --  ALSA SoC ROCKCHIP IIS Audio Layer Platform driver
  *
@@ -362,6 +365,12 @@ static int rockchip_i2s_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
+/*$_rbox_$_modify_$_huangzhibao_begin$_20120508_$*/
+#if defined(CONFIG_SND_RKXX_SOC_SPDIF)   
+extern void rk29_spdif_ctrl(int on_off, bool stopSPDIF);
+#endif
+/*$_rbox_$_modify_$_huangzhibao_end$_20120508_$*/
+
 static int rockchip_i2s_trigger(struct snd_pcm_substream *substream, int cmd, struct snd_soc_dai *dai)
 {    
 	int ret = 0;
@@ -702,10 +711,12 @@ static int __devinit rockchip_i2s_probe(struct platform_device *pdev)
 	i2s->dma_playback->client = &rk29_dma_client_out;
 	i2s->dma_playback->dma_size = 4;
 	i2s->dma_playback->flag = 0;			//add by sxj, used for burst change
-#ifdef CONFIG_SND_I2S_DMA_EVENT_STATIC
+/*$_rbox_$_modify_$_huangzhibao_begin$_20120505_$_remane CONFIG_SND_DMA_EVENT_STATIC*/		
+#ifdef CONFIG_SND_DMA_EVENT_STATIC
 	 WARN_ON(rk29_dma_request(i2s->dma_playback->channel, i2s->dma_playback->client, NULL));
 	 WARN_ON(rk29_dma_request(i2s->dma_capture->channel, i2s->dma_capture->client, NULL));
 #endif
+/*$_rbox_$_modify_$_huangzhibao_end$_20120505_$*/	
 
 	i2s->iis_clk = clk_get(&pdev->dev, "i2s");
 	I2S_DBG("Enter:%s, %d, iis_clk=%p\n", __FUNCTION__, __LINE__, i2s->iis_clk);

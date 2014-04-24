@@ -115,6 +115,9 @@ static const char bt_name[] =
     #else
         "rk903"
     #endif
+//add for bt of ap6330
+#elif defined(CONFIG_AP6330)
+        "rk903_26M"
 #elif defined(CONFIG_BCM4329)
         "bcm4329"
 #elif defined(CONFIG_MV8787)

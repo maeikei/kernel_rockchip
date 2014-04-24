@@ -170,6 +170,8 @@ static void rk_cif_power(struct rk29camera_gpio_res *res,int on)
 		return;
 	    }
     if(on == 0){
+		//$_rbox_$_modify_$ zhengyang modified for box: pizza board ch7025 also use 1.8V power, so we donot need to disable it.
+		#ifndef CONFIG_MACH_RK30_BOX_PIZZA
 		while(regulator_is_enabled(ldo_28)>0)	
     		regulator_disable(ldo_28);
     	regulator_put(ldo_28);
@@ -177,6 +179,8 @@ static void rk_cif_power(struct rk29camera_gpio_res *res,int on)
     		regulator_disable(ldo_18);
     	regulator_put(ldo_18);
     	mdelay(10);
+    	#endif
+    	//$_rbox_$_modify_$ zhengyang modified end
 	if (camera_power != INVALID_GPIO)  {
 		  if (camera_io_init & RK29_CAM_POWERACTIVE_MASK) {
 			  gpio_set_value(camera_power, (((~camera_ioflag)&RK29_CAM_POWERACTIVE_MASK)>>RK29_CAM_POWERACTIVE_BITPOS));

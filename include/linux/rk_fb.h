@@ -1,3 +1,4 @@
+//$_FOR_ROCKCHIP_RBOX_$
 /* drivers/video/rk_fb.h
  *
  * Copyright (C) 2010 ROCKCHIP, Inc.
@@ -228,7 +229,10 @@ struct rk_lcdc_device_driver{
 	rk_screen *screen1;		      //two display devices for dual display,such as rk2918,rk2928
 	rk_screen *cur_screen;		     //screen0 is primary screen ,like lcd panel,screen1 is  extend screen,like hdmi
 	u32 pixclock;
-
+//$_rbox_$_modify_$_zhengyang modified for box display system	
+	int x_scale;
+	int y_scale;
+//$_rbox_$_modify_$end
 	
         char fb0_win_id;
         char fb1_win_id;

@@ -22,4 +22,5 @@ obj-$(CONFIG_MACH_RK3188_FPGA) += board-rk3188-fpga.o
 obj-$(CONFIG_MACH_RK3188_TB) += ../mach-rk30/board-rk3168-tb.o
 obj-$(CONFIG_MACH_RK3188_LR097) += ../mach-rk30/board-rk3168-LR097.o
 obj-$(CONFIG_MACH_RK3188_DS1006H) += board-rk3188-ds1006h.o
+obj-$(CONFIG_MACH_RK3188_BOX) += board-rk3188-box.o
 

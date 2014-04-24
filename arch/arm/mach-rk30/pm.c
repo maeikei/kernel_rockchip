@@ -1,3 +1,4 @@
+//$_FOR_ROCKCHIP_RBOX_$
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/err.h>
@@ -479,6 +480,23 @@ static void __sramfunc rk30_sram_suspend(void)
 			  | (1 << CLK_GATE_PCLK_CPU)
 			  | (1 << CLK_GATE_ACLK_CORE)
 			  , clkgt_regs[0], CRU_CLKGATES_CON(0), 0xffff);
+
+//$_rbox_$_modify_$_huangzhibao_20121026 for ir wakeup
+//$_rbox_$_modify_$_begin			  
+#ifdef CONFIG_DWC_REMOTE_WAKEUP	
+	gate_save_soc_clk(0|(3<<5), clkgt_regs[1], CRU_CLKGATES_CON(1), 0xffff);//hzb
+	if(clkgt_regs[8]&((1<<12)|(1<13))){
+		gate_save_soc_clk(0
+				  | (1 << CLK_GATE_PERIPH_SRC % 16)
+				  | (1 << CLK_GATE_PCLK_PERIPH % 16)
+				  | (1 << CLK_GATE_HCLK_PERIPH % 16)
+				, clkgt_regs[2], CRU_CLKGATES_CON(2), 0xffff);
+	}else{
+		gate_save_soc_clk(0|(1 << CLK_GATE_HCLK_PERIPH % 16)
+				, clkgt_regs[2], CRU_CLKGATES_CON(2), 0xffff);
+
+	}
+#else
 	gate_save_soc_clk(0, clkgt_regs[1], CRU_CLKGATES_CON(1), 0xffff);
 #if defined(CONFIG_ARCH_RK3066B) || defined(CONFIG_ARCH_RK3188)
 	if(((clkgt_regs[8] >> CLK_GATE_PCLK_GPIO3% 16) & 0x01) == 0x01){
@@ -494,6 +512,8 @@ static void __sramfunc rk30_sram_suspend(void)
 				  | (1 << CLK_GATE_PCLK_PERIPH % 16)
 				, clkgt_regs[2], CRU_CLKGATES_CON(2), 0xffff);
 	}
+#endif	
+//$_rbox_$_modify_$_end	
 	gate_save_soc_clk(0
 			  | (1 << CLK_GATE_ACLK_STRC_SYS % 16)
 			  | (1 << CLK_GATE_ACLK_INTMEM % 16)
@@ -524,7 +544,12 @@ static void __sramfunc rk30_sram_suspend(void)
 	cru_writel(PERI_ACLK_DIV_W_MSK | PERI_ACLK_DIV(4), CRU_CLKSELS_CON(10));
 	cru_writel(CORE_CLK_DIV_W_MSK | CORE_CLK_DIV(4) | CPU_CLK_DIV_W_MSK | CPU_CLK_DIV(4), CRU_CLKSELS_CON(0));
 	cru_writel(0
+//$_rbox_$_modify_$_huangzhibao_20121026 for ir wakeup
+//$_rbox_$_modify_$_begin		
+#ifndef CONFIG_RK_IR_WAKEUP		
 		   | PLL_MODE_DEEP(APLL_ID)
+#endif
+//$_rbox_$_modify_$_end				
 		   | PLL_MODE_DEEP(DPLL_ID)
 		   | PLL_MODE_DEEP(CPLL_ID)
 		   | PLL_MODE_DEEP(GPLL_ID)
@@ -621,6 +646,19 @@ static int rk30_pm_enter(suspend_state_t state)
 			  | (1 << CLK_GATE_HCLK_CPU)
 			  | (1 << CLK_GATE_PCLK_CPU)
 			  , clkgt_regs[0], CRU_CLKGATES_CON(0), 0xffff);
+//$_rbox_$_modify_$_huangzhibao_20121026 for ir wakeup
+//$_rbox_$_modify_$_begin	 
+#ifdef CONFIG_DWC_REMOTE_WAKEUP			  
+	gate_save_soc_clk(0
+			  | (1 << CLK_GATE_DDR_GPLL % 16)|(3 <<5)
+			  , clkgt_regs[1], CRU_CLKGATES_CON(1), 0xffff);
+	gate_save_soc_clk(0
+			  | (1 << CLK_GATE_PERIPH_SRC % 16)
+			  | (1 << CLK_GATE_PCLK_PERIPH % 16)
+			  | (1 << CLK_GATE_ACLK_PERIPH % 16)
+			  | (1 << CLK_GATE_HCLK_PERIPH % 16)
+			  , clkgt_regs[2], CRU_CLKGATES_CON(2), 0xffff);		  
+#else
 	gate_save_soc_clk(0
 			  | (1 << CLK_GATE_DDR_GPLL % 16)
 			  , clkgt_regs[1], CRU_CLKGATES_CON(1), 0xffff);
@@ -629,6 +667,8 @@ static int rk30_pm_enter(suspend_state_t state)
 			  | (1 << CLK_GATE_PCLK_PERIPH % 16)
 			  | (1 << CLK_GATE_ACLK_PERIPH % 16)
 			  , clkgt_regs[2], CRU_CLKGATES_CON(2), 0xffff);
+#endif	
+//$_rbox_$_modify_$_end	
 	gate_save_soc_clk(0, clkgt_regs[3], CRU_CLKGATES_CON(3), 0xff9f);
 	gate_save_soc_clk(0
 			  | (1 << CLK_GATE_HCLK_PERI_AXI_MATRIX % 16)

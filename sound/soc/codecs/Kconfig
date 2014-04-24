@@ -1,3 +1,4 @@
+#$_FOR_ROCKCHIP_RBOX_$
 # Helper to resolve issues with configs that have SPI enabled but I2C
 # modular, meaning we can't build the codec driver in with I2C support.
 # We use an ordered list of conditional defaults to pick the appropriate
@@ -440,3 +441,8 @@ config SND_SOC_WM9090
 config SND_SOC_RK2928
 	tristate
 	depends on ARCH_RK2928
+	
+##$_rbox_$_modify_$_zhengyang_begin$_20120704
+config SND_SOC_RK_HDMI_CODEC
+	tristate
+##$_rbox_$_modify_$_zhengyang_end$_20120704

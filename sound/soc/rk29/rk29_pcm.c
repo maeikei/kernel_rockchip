@@ -1,3 +1,6 @@
+/*$_FOR_ROCKCHIP_RBOX_$*/
+/*$_rbox_$_modify_$_huangzhibao 20120528*/
+
 /*
  * rk29_pcm.c  --  ALSA SoC ROCKCHIP PCM Audio Layer Platform driver
  *
@@ -252,7 +255,9 @@ static int rockchip_pcm_hw_params(struct snd_pcm_substream *substream,
 	if (prtd->params == NULL) {
 		/* prepare DMA */
 		prtd->params = dma;
-#ifdef CONFIG_SND_I2S_DMA_EVENT_DYNAMIC
+/*$_rbox_$_modify_$_huangzhibao_begin$_20120505_rename CONFIG_SND_DMA_EVENT_DYNAMIC$*/
+#ifdef CONFIG_SND_DMA_EVENT_DYNAMIC
+/*$_rbox_$_modify_$_huangzhibao_end$_20120505_$*/
 		DBG("params %p, client %p, channel %d\n", prtd->params,prtd->params->client, prtd->params->channel);
 		ret = rk29_dma_request(prtd->params->channel, prtd->params->client, NULL);
 		DBG("Enter::%s, %d, ret=%d, Channel=%d\n", __FUNCTION__, __LINE__, ret, prtd->params->channel);
@@ -296,7 +301,9 @@ static int rockchip_pcm_hw_free(struct snd_pcm_substream *substream)
 	snd_pcm_set_runtime_buffer(substream, NULL);
 
 	if (prtd->params) {
-#ifdef CONFIG_SND_I2S_DMA_EVENT_DYNAMIC		
+/*$_rbox_$_modify_$_huangzhibao_begin$_20120505_rename CONFIG_SND_DMA_EVENT_DYNAMIC$*/	
+#ifdef CONFIG_SND_DMA_EVENT_DYNAMIC	
+/*$_rbox_$_modify_$_huangzhibao_end$_20120505*/
 		rk29_dma_free(prtd->params->channel, prtd->params->client);
 		prtd->params = NULL;
 #endif		

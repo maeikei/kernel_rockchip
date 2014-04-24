@@ -1,3 +1,4 @@
+#$_FOR_ROCKCHIP_RBOX_$
 config ARCH_RK30XX
 	depends on ARCH_RK30
 	bool
@@ -64,6 +65,18 @@ config MACH_RK30_DS1001B
      
 config MACH_RK30_PHONE
 	bool "RK30 smart phone board"
+	
+#$_rbox_$_modify_$_begin
+config MACH_RK30_BOX_HAMBURGER
+	bool "RK30 itv box hamburger board"
+	
+config MACH_RK30_BOX_PIZZA
+	bool "RK30 itv box pizza board"
+	
+config MACH_RK30_BOX_HOTDOG
+	bool "RK30 itv box hotdog board"
+		
+#$_rbox_$_modify_$_end
 
 config MACH_RK30_PHONE_LOQUAT
 	bool "RK30 smart phone loquat board"

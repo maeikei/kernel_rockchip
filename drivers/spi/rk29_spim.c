@@ -1971,7 +1971,7 @@ static int __init rk29xx_spim_probe(struct platform_device *pdev)
 		return PTR_ERR(dws->clock_spim);
 	}
 
-	dws->pclk = clk_get(&pdev->dev, "pclk_spi");
+	dws->pclk = clk_get(&pdev->dev, "pclk_spi0");
 	clk_enable(dws->pclk);
 	
 	mutex_init(&dws->dma_lock);

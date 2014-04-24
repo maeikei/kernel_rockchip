@@ -1,3 +1,4 @@
+##$_FOR_ROCKCHIP_RBOX_$
 EXTRA_CFLAGS += -Os
 ifneq ($(CONFIG_RK_FPGA),y)
 obj-y += ../plat-rk/clock.o
@@ -31,6 +32,13 @@ obj-$(CONFIG_MACH_RK3066_SDK) += board-rk30-sdk.o
 obj-$(CONFIG_MACH_RK30_SDK) += board-rk30-sdk.o
 obj-$(CONFIG_MACH_RK30_DS975) += board-rk30-ds975.o
 obj-$(CONFIG_MACH_RK30_PHONE) += board-rk30-phone.o board-rk30-phone-key.o
+#$_rbox_$_modify_$_huangzhibao
+#$_rbox_$_modify_$_begin
+obj-$(CONFIG_MACH_RK30_BOX_HAMBURGER) += board-rk30-box.o board-rk30-sdk-rfkill.o
+obj-$(CONFIG_MACH_RK30_BOX_PIZZA) += board-rk30-box.o board-rk30-sdk-rfkill.o
+obj-$(CONFIG_MACH_RK30_BOX_HOTDOG) += board-rk30-box.o board-rk30-sdk-rfkill.o
+#$_rbox_$_modify_$_end
+
 obj-$(CONFIG_MACH_RK30_PHONE_PAD) += board-rk30-phonepad.o board-rk30-phonepad-key.o
 obj-$(CONFIG_MACH_RK30_PHONE_LOQUAT) += board-rk30-phone-loquat.o board-rk30-phone-loquat-key.o
 obj-$(CONFIG_MACH_RK30_DS1001B) += board-rk30-ds1001b.o board-rk30-ds1001b-key.o board-rk30-ds1001b-rfkill.o

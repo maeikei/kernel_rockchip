@@ -1,3 +1,4 @@
+/*$_FOR_ROCKCHIP_RBOX_$*/
 /* arch/arm/mach-rk30/devices.c
  *
  * Copyright (C) 2012 ROCKCHIP, Inc.
@@ -1112,6 +1113,37 @@ static void __init rk30_init_sdmmc(void)
 #endif
 }
 
+/*$_rbox_$_modify_$_huangzhibao_begin$_20120508_$*/
+#ifdef CONFIG_SND_RK_SOC_SPDIF
+static struct resource resources_spdif[] = {
+    [0] = {
+		.name 	= "spdif_base",
+        .start 	= RK30_SPDIF_PHYS,
+        .end    = RK30_SPDIF_PHYS + RK30_SPDIF_SIZE - 1,
+        .flags  = IORESOURCE_MEM,
+    },
+    [1] = {
+		.name 	= "spdif_irq",
+        .start 	= IRQ_SPDIF,
+        .end    = IRQ_SPDIF,
+        .flags  = IORESOURCE_IRQ,
+    },
+    [2] = {
+		.name 	= "spdif_dma",
+        .start 	= DMACH_SPDIF_TX,
+        .end    = DMACH_SPDIF_TX,
+        .flags  = IORESOURCE_DMA,
+    },
+};
+struct platform_device rk29_device_spdif = {
+    .name             = "rk-spdif",
+    .id               = 0,
+    .num_resources    = ARRAY_SIZE(resources_spdif),
+    .resource         = resources_spdif,
+};
+#endif
+/*$_rbox_$_modify_$_huangzhibao_end$_20120508_$*/
+
 #ifdef CONFIG_RK29_VMAC
 static u64 eth_dmamask = DMA_BIT_MASK(32);
 static struct resource resources_vmac[] = {
@@ -1208,6 +1240,12 @@ static int __init rk30_init_devices(void)
 	rk_serial_debug_init(DEBUG_UART_BASE, IRQ_DEBUG_UART, IRQ_UART_SIGNAL, -1);
 #endif
 	rk30_init_i2s();
+
+/*$_rbox_$_modify_$_huangzhibao_begin$_20120508_$*/
+#ifdef CONFIG_SND_RK_SOC_SPDIF
+    platform_device_register(&rk29_device_spdif);
+#endif
+/*$_rbox_$_modify_$_huangzhibao_end$_20120508_$*/
 #ifdef CONFIG_RK29_VMAC
 	platform_device_register(&device_vmac);
 #endif

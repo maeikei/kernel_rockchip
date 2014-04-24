@@ -1,3 +1,4 @@
+//$_FOR_ROCKCHIP_RBOX_$
 /*
  * arch/arm/mach-rk30/ddr.c
  *
@@ -3341,6 +3342,10 @@ void __sramfunc ddr_suspend(void)
 #else
     n= pGRF_Reg->GRF_SOC_STATUS0;
 #endif
+//$_rbox_$_modify_$_chenzhi: fix 12345 problem
+//$_rbox_$_modify_$_begin
+    n= *(volatile uint32_t *)RK30_UART2_BASE;
+//$_rbox_$_modify_$_end
     dsb();
     
     ddr_selfrefresh_enter(0);

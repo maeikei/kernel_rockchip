@@ -616,6 +616,7 @@ static  int win0_set_par(struct rk3188_lcdc_device *lcdc_dev,rk_screen *screen,
 			dev_err(lcdc_dev->driver.dev,"%s:un supported format!\n",__func__);
 			break;
 		}
+		lcdc_cfg_done(lcdc_dev);
 
 	}
 	spin_unlock(&lcdc_dev->reg_lock);
@@ -744,17 +745,17 @@ static  int win0_display(struct rk3188_lcdc_device *lcdc_dev,struct layer_par *p
 	{
 		lcdc_writel(lcdc_dev, WIN0_YRGB_MST0, y_addr);
 		lcdc_writel(lcdc_dev, WIN0_CBR_MST0, uv_addr);	
- #if defined(CONFIG_RK_HDMI)
- #if defined(CONFIG_DUAL_LCDC_DUAL_DISP_IN_KERNEL)
-        if(lcdc_dev->driver.screen_ctr_info->prop == EXTEND)
-        {
-            if(hdmi_get_hotplug() == HDMI_HPD_ACTIVED)
-            {
+// #if defined(CONFIG_RK_HDMI)
+// #if defined(CONFIG_DUAL_LCDC_DUAL_DISP_IN_KERNEL)
+//        if(lcdc_dev->driver.screen_ctr_info->prop == EXTEND)
+//        {
+//            if(hdmi_get_hotplug() == HDMI_HPD_ACTIVED)
+//            {
                 lcdc_cfg_done(lcdc_dev);
-            }
-        }
- #endif 
- #endif
+//            }
+//        }
+// #endif 
+// #endif
 	}
 	spin_unlock(&lcdc_dev->reg_lock);
 
@@ -774,17 +775,17 @@ static  int win1_display(struct rk3188_lcdc_device *lcdc_dev,struct layer_par *p
 	if(likely(lcdc_dev->clk_on))
 	{
 		lcdc_writel(lcdc_dev,WIN1_MST,y_addr);
- #if defined(CONFIG_RK_HDMI)
- #if defined(CONFIG_DUAL_LCDC_DUAL_DISP_IN_KERNEL)
-        if(lcdc_dev->driver.screen_ctr_info->prop == EXTEND)
-        {
-            if(hdmi_get_hotplug() == HDMI_HPD_ACTIVED)
-            {
+// #if defined(CONFIG_RK_HDMI)
+// #if defined(CONFIG_DUAL_LCDC_DUAL_DISP_IN_KERNEL)
+//        if(lcdc_dev->driver.screen_ctr_info->prop == EXTEND)
+//        {
+//            if(hdmi_get_hotplug() == HDMI_HPD_ACTIVED)
+//            {
                 lcdc_cfg_done(lcdc_dev);
-            }
-        }
- #endif 
- #endif
+//            }
+//        }
+// #endif 
+// #endif
 	}
 	spin_unlock(&lcdc_dev->reg_lock);
 
