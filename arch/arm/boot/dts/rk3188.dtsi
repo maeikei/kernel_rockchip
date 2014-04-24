@@ -730,7 +730,7 @@
                     "GRF_UOC3_BASE";
 		interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "otg_bvalid";
-		gpios = <&gpio0 GPIO_C0 GPIO_ACTIVE_LOW>, <&gpio3 GPIO_D5 GPIO_ACTIVE_LOW>;
+		gpios = <&gpio0 GPIO_A3 GPIO_ACTIVE_HIGH>, <&gpio2 GPIO_D7 GPIO_ACTIVE_HIGH>;
 		clocks = <&clk_gates4 5>;
 		clock-names = "hclk_usb_peri";
 		rockchip,remote_wakeup;
