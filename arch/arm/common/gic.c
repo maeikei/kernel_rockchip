@@ -200,6 +200,7 @@ static int gic_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
 	spin_lock(&irq_controller_lock);
 	d->node = cpu;
 	val = readl_relaxed(reg) & ~mask;
+	if((gic_irq(d)!=48) && (gic_irq(d)!=49))
 	writel_relaxed(val | bit, reg);
 	spin_unlock(&irq_controller_lock);
 
@@ -317,6 +318,10 @@ static void __init gic_dist_init(struct gic_chip_data *gic,
 	 */
 	for (i = 32; i < gic_irqs; i += 4)
 		writel_relaxed(0xa0a0a0a0, base + GIC_DIST_PRI + i * 4 / 4);
+
+	//Set  usb host IRQ 49 and usb otg IRQ 48 for N cpu
+	writel_relaxed(0x01010f0f, base + GIC_DIST_TARGET + 0x30);
+	writel_relaxed(0xa0a09090, base + GIC_DIST_PRI + 0x30);
 
 	/*
 	 * Disable all interrupts.  Leave the PPI and SGIs alone

@@ -1,4 +1,4 @@
-//$_FOR_ROCKCHIP_RBOX_$
+
 
 static int rk30_vmac_register_set(void)
 {
@@ -18,7 +18,11 @@ static int rk30_rmii_io_init(void)
 	iomux_set(RMII_TXD0);
 	iomux_set(RMII_RXD0);
 	iomux_set(RMII_RXD1);
-	iomux_set(RMII_CLKOUT);
+#if defined (CONFIG_RK29_VMAC_EXT_CLK)      
+	iomux_set(RMII_CLKIN);
+#else
+    iomux_set(RMII_CLKOUT);
+#endif
 	iomux_set(RMII_RXERR);
 	iomux_set(RMII_CRS);
 	iomux_set(RMII_MD);
@@ -75,7 +79,11 @@ static int rk30_rmii_power_control(int enable)
 		iomux_set(RMII_TXD0);
 		iomux_set(RMII_RXD0);
 		iomux_set(RMII_RXD1);
-		iomux_set(RMII_CLKOUT);
+#if defined (CONFIG_RK29_VMAC_EXT_CLK)        
+		iomux_set(RMII_CLKIN);
+#else 
+        iomux_set(RMII_CLKOUT);
+#endif
 		iomux_set(RMII_RXERR);
 		iomux_set(RMII_CRS);
 		iomux_set(RMII_MD);
@@ -83,8 +91,11 @@ static int rk30_rmii_power_control(int enable)
 		iomux_set(GPIO3_D2);
 #if 1
 		//regulator_set_voltage(ldo_33, 3300000, 300000);
-                regulator_enable(ldo_33);
-                regulator_put(ldo_33);
+		if (ldo_33 && (!regulator_is_enabled(ldo_33))) {
+                	regulator_enable(ldo_33);
+                	regulator_put(ldo_33);
+		}
+
 		//gpio_direction_output(RK30_PIN3_PD2, GPIO_LOW);
 		gpio_set_value(RK30_PIN3_PD2, GPIO_LOW);
 		msleep(20);
@@ -97,8 +108,10 @@ static int rk30_rmii_power_control(int enable)
 #endif
 	}else {
 #if 1
-                regulator_disable(ldo_33);
-        	regulator_put(ldo_33);
+		if (ldo_33 && (regulator_is_enabled(ldo_33))) {
+                	regulator_disable(ldo_33);
+        		regulator_put(ldo_33);
+		}
 #else
 		gpio_direction_output(PHY_PWR_EN_GPIO, GPIO_LOW);
 		gpio_set_value(PHY_PWR_EN_GPIO, GPIO_LOW);
@@ -112,9 +125,9 @@ static int rk29_vmac_speed_switch(int speed)
 {
 	//printk("%s--speed=%d\n", __FUNCTION__, speed);
 	if (10 == speed) {
-	    writel_relaxed(readl_relaxed(RK30_GRF_BASE + GRF_SOC_CON1) & (~BIT_EMAC_SPEED), RK30_GRF_BASE + GRF_SOC_CON1);
+	    writel_relaxed(readl_relaxed(RK30_GRF_BASE + GRF_SOC_CON1) & (~BIT_EMAC_SPEED) | (BIT_EMAC_SPEED << 16), RK30_GRF_BASE + GRF_SOC_CON1);
 	} else {
-	    writel_relaxed(readl_relaxed(RK30_GRF_BASE + GRF_SOC_CON1) | ( BIT_EMAC_SPEED), RK30_GRF_BASE + GRF_SOC_CON1);
+	    writel_relaxed(readl_relaxed(RK30_GRF_BASE + GRF_SOC_CON1) | ( BIT_EMAC_SPEED) | (BIT_EMAC_SPEED << 16), RK30_GRF_BASE + GRF_SOC_CON1);
 	}
 }
 

@@ -28,13 +28,14 @@ static void __init rk30_cpu_axi_init(void)
 	CPU_AXI_SET_QOS_PRIORITY(0, 0, CPU0);
 	CPU_AXI_SET_QOS_PRIORITY(0, 0, CPU1R);
 	CPU_AXI_SET_QOS_PRIORITY(0, 0, CPU1W);
-#ifdef CONFIG_RK29_VMAC
+//#ifdef CONFIG_RK29_VMAC
 	CPU_AXI_SET_QOS_PRIORITY(2, 2, PERI);
-#else
-	CPU_AXI_SET_QOS_PRIORITY(0, 0, PERI);
-#endif
+//#else
+//	CPU_AXI_SET_QOS_PRIORITY(0, 0, PERI);
+//#endif
 	CPU_AXI_SET_QOS_PRIORITY(3, 3, LCDC0);
 	CPU_AXI_SET_QOS_PRIORITY(3, 3, LCDC1);
+	CPU_AXI_SET_QOS_PRIORITY(2, 1, GPU);
 
 	writel_relaxed(0x3f, RK30_CPU_AXI_BUS_BASE + 0x0014);	// memory scheduler read latency
 	dsb();
@@ -59,6 +60,9 @@ static void __init rk30_l2_cache_init(void)
 {
 #ifdef CONFIG_CACHE_L2X0
 	u32 aux_ctrl, aux_ctrl_mask, data_latency_ctrl;
+#if defined(CONFIG_ARCH_RK3188)
+	data_latency_ctrl = L2_LATENCY(2, 3, 1);
+#else
 	unsigned int max_cpu_freq = 1608000; // kHz
 	struct cpufreq_frequency_table *table = NULL;
 	struct clk *clk_cpu;
@@ -84,6 +88,7 @@ static void __init rk30_l2_cache_init(void)
 		data_latency_ctrl = L2_LATENCY(5, 8, 1);
 	else
 		data_latency_ctrl = L2_LATENCY(6, 8, 1);
+#endif
 
 	writel_relaxed(L2_LATENCY(1, 1, 1), RK30_L2C_BASE + L2X0_TAG_LATENCY_CTRL);
 	writel_relaxed(data_latency_ctrl, RK30_L2C_BASE + L2X0_DATA_LATENCY_CTRL);

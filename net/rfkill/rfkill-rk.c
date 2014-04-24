@@ -42,6 +42,8 @@
 #include <linux/interrupt.h>
 #include <asm/irq.h>
 #include <linux/suspend.h>
+#include <linux/proc_fs.h>
+#include <linux/uaccess.h>
 
 #if 0
 #define DBG(x...)   printk(KERN_INFO "[BT_RFKILL]: "x)
@@ -51,7 +53,7 @@
 
 #define LOG(x...)   printk(KERN_INFO "[BT_RFKILL]: "x)
 
-#define BT_WAKEUP_TIMEOUT           3000
+#define BT_WAKEUP_TIMEOUT           10000
 #define BT_IRQ_WAKELOCK_TIMEOUT     10*1000
 
 #define BT_BLOCKED     true
@@ -115,13 +117,18 @@ static const char bt_name[] =
     #else
         "rk903"
     #endif
-//add for bt of ap6330
-#elif defined(CONFIG_AP6330)
-        "rk903_26M"
 #elif defined(CONFIG_BCM4329)
         "bcm4329"
 #elif defined(CONFIG_MV8787)
         "mv8787"
+#elif defined(CONFIG_AP6210)
+        "ap6210"
+#elif defined(CONFIG_AP6330)
+		"ap6330"
+#elif defined(CONFIG_AP6476)
+		"ap6476"
+#elif defined(CONFIG_AP6493)
+		"ap6493"
 #else
         "bt_default"
 #endif
@@ -164,9 +171,9 @@ static int rfkill_rk_setup_gpio(struct rfkill_rk_gpio* gpio, int mux, const char
 		}
         if (gpio->iomux.name)
         {
-            if (mux==1)
+            if (mux==IOMUX_FGPIO)
                 rk_mux_api_set(gpio->iomux.name, gpio->iomux.fgpio);
-            else if (mux==2)
+            else if (mux==IOMUX_FMUX)
                 rk_mux_api_set(gpio->iomux.name, gpio->iomux.fmux);
             else
                 ;// do nothing
@@ -182,13 +189,17 @@ static int rfkill_rk_setup_wake_irq(struct rfkill_rk_data* rfkill)
     int ret=0;
     struct rfkill_rk_irq* irq = &(rfkill->pdata->wake_host_irq);
     
+#ifndef CONFIG_BK3515A_COMBO
     ret = rfkill_rk_setup_gpio(&irq->gpio, IOMUX_FGPIO, rfkill->pdata->name, "wake_host");
     if (ret) goto fail1;
+#endif
 
     if (gpio_is_valid(irq->gpio.io))
     {
+#ifndef CONFIG_BK3515A_COMBO
         ret = gpio_pull_updown(irq->gpio.io, (irq->gpio.enable==GPIO_LOW)?GPIOPullUp:GPIOPullDown);
         if (ret) goto fail2;
+#endif
         LOG("Request irq for bt wakeup host\n");
         irq->irq = gpio_to_irq(irq->gpio.io);
         sprintf(irq->name, "%s_irq", irq->gpio.name);
@@ -219,7 +230,24 @@ static inline void rfkill_rk_sleep_bt_internal(struct rfkill_rk_data *rfkill, bo
     struct rfkill_rk_gpio *wake = &rfkill->pdata->wake_gpio;
     
     DBG("*** bt sleep: %d ***\n", sleep);
+#ifndef CONFIG_BK3515A_COMBO
     gpio_direction_output(wake->io, sleep?!wake->enable:wake->enable);
+#else
+    if(!sleep)
+    {
+        DBG("HOST_UART0_TX pull down 10us\n");
+        if (rfkill_rk_setup_gpio(wake, IOMUX_FGPIO, rfkill->pdata->name, "wake") != 0) {
+            return;
+        }
+
+        gpio_direction_output(wake->io, wake->enable);
+        udelay(10);
+        gpio_direction_output(wake->io, !wake->enable);
+
+        rk_mux_api_set(wake->iomux.name, wake->iomux.fmux);
+        gpio_free(wake->io);
+    }
+#endif
 }
 
 static void rfkill_rk_delay_sleep_bt(struct work_struct *work)
@@ -283,6 +311,7 @@ static int rfkill_rk_set_power(void *data, bool blocked)
 	struct rfkill_rk_data *rfkill = data;
     struct rfkill_rk_gpio *poweron = &rfkill->pdata->poweron_gpio;
     struct rfkill_rk_gpio *reset = &rfkill->pdata->reset_gpio;
+    struct rfkill_rk_gpio* rts = &rfkill->pdata->rts_gpio;
 
     DBG("Enter %s\n", __func__);
 
@@ -290,7 +319,7 @@ static int rfkill_rk_set_power(void *data, bool blocked)
 
 	if (false == blocked) { 
         rfkill_rk_sleep_bt(BT_WAKEUP); // ensure bt is wakeup
-        
+
 		if (gpio_is_valid(poweron->io))
         {
 			gpio_direction_output(poweron->io, poweron->enable);
@@ -303,6 +332,27 @@ static int rfkill_rk_set_power(void *data, bool blocked)
 			gpio_direction_output(reset->io, !reset->enable);
             msleep(20);
         }
+
+#if defined(CONFIG_AP6210)
+        if (gpio_is_valid(rts->io))
+        {
+            if (rts->iomux.name)
+            {
+                rk_mux_api_set(rts->iomux.name, rts->iomux.fgpio);
+            }
+            LOG("ENABLE UART_RTS\n");
+            gpio_direction_output(rts->io, rts->enable);
+
+            msleep(100);
+
+            LOG("DISABLE UART_RTS\n");
+            gpio_direction_output(rts->io, !rts->enable);
+            if (rts->iomux.name)
+            {
+                rk_mux_api_set(rts->iomux.name, rts->iomux.fmux);
+            }
+        }
+#endif
 
     	LOG("bt turn on power\n");
 	} else {
@@ -371,6 +421,16 @@ static int rfkill_rk_pm_prepare(struct device *dev)
     // enable bt wakeup host
     if (gpio_is_valid(wake_host_irq->gpio.io))
     {
+#ifdef CONFIG_BK3515A_COMBO
+        int ret = 0;
+        ret = rfkill_rk_setup_gpio(&wake_host_irq->gpio, IOMUX_FGPIO, rfkill->pdata->name, "wake_host");
+        if (ret)
+            LOG("irq rfkill_rk_setup_gpio failed\n");
+
+        ret = gpio_pull_updown(wake_host_irq->gpio.io, (wake_host_irq->gpio.enable==GPIO_LOW)?GPIOPullUp:GPIOPullDown);
+        if (ret)
+            LOG("irq gpio_pull_updown failed\n");
+#endif
         DBG("enable irq for bt wakeup host\n");
         enable_irq(wake_host_irq->irq);
     }
@@ -402,6 +462,10 @@ static void rfkill_rk_pm_complete(struct device *dev)
         // 而多次触发该中断
         LOG("** disable irq\n");
         disable_irq(wake_host_irq->irq);
+#ifdef CONFIG_BK3515A_COMBO
+        rk_mux_api_set(wake_host_irq->gpio.iomux.name, wake_host_irq->gpio.iomux.fmux);
+        gpio_free(wake_host_irq->gpio.io);
+#endif
     }
 
     /* 使用UART_RTS，此时蓝牙如果有数据就会送到UART
@@ -423,11 +487,56 @@ static const struct rfkill_ops rfkill_rk_ops = {
     .set_block = rfkill_rk_set_power,
 };
 
+#define PROC_DIR	"bluetooth/sleep"
+
+static struct proc_dir_entry *bluetooth_dir, *sleep_dir;
+
+static int bluesleep_read_proc_lpm(char *page, char **start, off_t offset,
+					int count, int *eof, void *data)
+{
+    *eof = 1;
+    return sprintf(page, "unsupported to read\n");
+}
+
+static int bluesleep_write_proc_lpm(struct file *file, const char *buffer,
+					unsigned long count, void *data)
+{
+    return count;
+}
+
+static int bluesleep_read_proc_btwrite(char *page, char **start, off_t offset,
+					int count, int *eof, void *data)
+{
+    *eof = 1;
+    return sprintf(page, "unsupported to read\n");
+}
+
+static int bluesleep_write_proc_btwrite(struct file *file, const char *buffer,
+					unsigned long count, void *data)
+{
+    char b;
+
+    if (count < 1)
+        return -EINVAL;
+
+    if (copy_from_user(&b, buffer, 1))
+        return -EFAULT;
+
+    DBG("btwrite %c\n", b);
+    /* HCI_DEV_WRITE */
+    if (b != '0') {
+        rfkill_rk_sleep_bt(BT_WAKEUP);
+    }
+
+    return count;
+}
+
 static int rfkill_rk_probe(struct platform_device *pdev)
 {
 	struct rfkill_rk_data *rfkill;
 	struct rfkill_rk_platform_data *pdata = pdev->dev.platform_data;
 	int ret = 0;
+    struct proc_dir_entry *ent;
 
     DBG("Enter %s\n", __func__);
 
@@ -445,6 +554,38 @@ static int rfkill_rk_probe(struct platform_device *pdev)
 	rfkill->pdata = pdata;
     g_rfkill = rfkill;
 
+    bluetooth_dir = proc_mkdir("bluetooth", NULL);
+    if (bluetooth_dir == NULL) {
+        LOG("Unable to create /proc/bluetooth directory");
+        return -ENOMEM;
+    }
+
+    sleep_dir = proc_mkdir("sleep", bluetooth_dir);
+    if (sleep_dir == NULL) {
+        LOG("Unable to create /proc/%s directory", PROC_DIR);
+        return -ENOMEM;
+    }
+
+	/* read/write proc entries */
+    ent = create_proc_entry("lpm", 0, sleep_dir);
+    if (ent == NULL) {
+        LOG("Unable to create /proc/%s/lpm entry", PROC_DIR);
+        ret = -ENOMEM;
+        goto fail_alloc;
+    }
+    ent->read_proc = bluesleep_read_proc_lpm;
+    ent->write_proc = bluesleep_write_proc_lpm;
+
+    /* read/write proc entries */
+    ent = create_proc_entry("btwrite", 0, sleep_dir);
+    if (ent == NULL) {
+        LOG("Unable to create /proc/%s/btwrite entry", PROC_DIR);
+        ret = -ENOMEM;
+        goto fail_alloc;
+    }
+    ent->read_proc = bluesleep_read_proc_btwrite;
+    ent->write_proc = bluesleep_write_proc_btwrite;
+
     // 申请GPIO以及IRQ
     DBG("init gpio\n");
     // 对于RK29 BCM4329，它的poweron io与wifi共用，在boad文件中已经request
@@ -457,8 +598,10 @@ static int rfkill_rk_probe(struct platform_device *pdev)
     ret = rfkill_rk_setup_gpio(&pdata->reset_gpio, IOMUX_FGPIO, pdata->name, "reset");
     if (ret) goto fail_poweron;
 
+#ifndef CONFIG_BK3515A_COMBO
     ret = rfkill_rk_setup_gpio(&pdata->wake_gpio, IOMUX_FGPIO, pdata->name, "wake");
     if (ret) goto fail_reset;
+#endif
 
     ret = rfkill_rk_setup_wake_irq(rfkill);
     if (ret) goto fail_wake;
@@ -499,11 +642,15 @@ fail_rts:
 fail_wake_host_irq:
     if (gpio_is_valid(pdata->wake_host_irq.gpio.io)){
         free_irq(pdata->wake_host_irq.irq, rfkill);
+#ifndef CONFIG_BK3515A_COMBO
         gpio_free(pdata->wake_host_irq.gpio.io);
+#endif
     }
 fail_wake:
+#ifndef CONFIG_BK3515A_COMBO
     if (gpio_is_valid(pdata->wake_gpio.io))
         gpio_free(pdata->wake_gpio.io);
+#endif
 fail_reset:
 	if (gpio_is_valid(pdata->reset_gpio.io))
 		gpio_free(pdata->reset_gpio.io);
@@ -515,6 +662,9 @@ fail_poweron:
 fail_alloc:
 	kfree(rfkill);
     g_rfkill = NULL;
+
+	remove_proc_entry("btwrite", sleep_dir);
+	remove_proc_entry("lpm", sleep_dir);
 
 	return ret;
 }
@@ -538,11 +688,15 @@ static int rfkill_rk_remove(struct platform_device *pdev)
     
     if (gpio_is_valid(rfkill->pdata->wake_host_irq.gpio.io)){
         free_irq(rfkill->pdata->wake_host_irq.irq, rfkill);
+#ifndef CONFIG_BK3515A_COMBO
         gpio_free(rfkill->pdata->wake_host_irq.gpio.io);
+#endif
     }
     
+#ifndef CONFIG_BK3515A_COMBO
     if (gpio_is_valid(rfkill->pdata->wake_gpio.io))
         gpio_free(rfkill->pdata->wake_gpio.io);
+#endif
     
     if (gpio_is_valid(rfkill->pdata->reset_gpio.io))
         gpio_free(rfkill->pdata->reset_gpio.io);
