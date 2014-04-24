@@ -51,6 +51,10 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/printk.h>
 
+#ifdef CONFIG_EARLY_PRINTK_DIRECT
+extern void printascii(char *);
+#endif
+
 /* printk's without a loglevel use this.. */
 #define DEFAULT_MESSAGE_LOGLEVEL CONFIG_DEFAULT_MESSAGE_LOGLEVEL
 
@@ -1578,6 +1582,10 @@ asmlinkage int vprintk_emit(int facility, int level,
 		}
 	}
 
+#ifdef CONFIG_EARLY_PRINTK_DIRECT
+	printascii(text);
+#endif
+
 	if (level == -1)
 		level = default_message_loglevel;
 
@@ -1699,6 +1707,21 @@ asmlinkage int printk(const char *fmt, ...)
 }
 EXPORT_SYMBOL(printk);
 
+#ifdef CONFIG_RK_LAST_LOG
+void __init switch_log_buf(char *new_log_buf, unsigned size)
+{
+	unsigned long flags;
+
+	if (!new_log_buf || log_buf_len > size)
+		return;
+
+	raw_spin_lock_irqsave(&logbuf_lock, flags);
+	memcpy(new_log_buf, log_buf, min(log_buf_len, size));
+	log_buf = new_log_buf;
+	log_buf_len = size;
+	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+}
+#endif /* CONFIG_RK_LAST_LOG */
 #else /* CONFIG_PRINTK */
 
 #define LOG_LINE_MAX		0

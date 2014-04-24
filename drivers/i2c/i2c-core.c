@@ -435,7 +435,7 @@ static const struct dev_pm_ops i2c_device_pm_ops = {
 	SET_RUNTIME_PM_OPS(
 		pm_generic_runtime_suspend,
 		pm_generic_runtime_resume,
-		pm_generic_runtime_idle
+		NULL
 	)
 };
 
@@ -1586,6 +1586,9 @@ int i2c_master_send(const struct i2c_client *client, const char *buf, int count)
 	msg.flags = client->flags & I2C_M_TEN;
 	msg.len = count;
 	msg.buf = (char *)buf;
+#ifdef CONFIG_I2C_ROCKCHIP_COMPAT
+	msg.scl_rate = 100 * 1000;
+#endif
 
 	ret = i2c_transfer(adap, &msg, 1);
 
@@ -1616,6 +1619,9 @@ int i2c_master_recv(const struct i2c_client *client, char *buf, int count)
 	msg.flags |= I2C_M_RD;
 	msg.len = count;
 	msg.buf = buf;
+#ifdef CONFIG_I2C_ROCKCHIP_COMPAT
+	msg.scl_rate = 100 * 1000;
+#endif
 
 	ret = i2c_transfer(adap, &msg, 1);
 

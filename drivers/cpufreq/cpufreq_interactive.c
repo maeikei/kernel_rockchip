@@ -367,6 +367,10 @@ static void cpufreq_interactive_timer(unsigned long data)
 	cpu_load = loadadjfreq / pcpu->target_freq;
 	boosted = tunables->boost_val || now < tunables->boostpulse_endtime;
 
+#ifdef CONFIG_ARCH_ROCKCHIP
+	pcpu->target_freq = pcpu->policy->cur;
+#endif
+
 	if (cpu_load >= tunables->go_hispeed_load || boosted) {
 		if (pcpu->target_freq < tunables->hispeed_freq) {
 			new_freq = tunables->hispeed_freq;
@@ -1163,6 +1167,23 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 		tunables->timer_rate = DEFAULT_TIMER_RATE;
 		tunables->boostpulse_duration_val = DEFAULT_MIN_SAMPLE_TIME;
 		tunables->timer_slack_val = DEFAULT_TIMER_SLACK;
+
+#ifdef CONFIG_ARCH_ROCKCHIP
+		{
+			unsigned int index;
+			freq_table = cpufreq_frequency_get_table(policy->cpu);
+			tunables->hispeed_freq = policy->max;
+			if (policy->min < 600000)
+				tunables->hispeed_freq = 600000;
+			else if (cpufreq_frequency_table_target(policy, freq_table, policy->min + 1, CPUFREQ_RELATION_L, &index) == 0)
+				tunables->hispeed_freq = freq_table[index].frequency;
+			tunables->timer_slack_val = 20 * USEC_PER_MSEC;
+			tunables->min_sample_time = 40 * USEC_PER_MSEC;
+			tunables->above_hispeed_delay[0] = 20 * USEC_PER_MSEC;
+			store_target_loads(tunables, "85 1600000:99", 0);
+			tunables->boostpulse_duration_val = 500 * USEC_PER_MSEC;
+		}
+#endif
 
 		spin_lock_init(&tunables->target_loads_lock);
 		spin_lock_init(&tunables->above_hispeed_delay_lock);
