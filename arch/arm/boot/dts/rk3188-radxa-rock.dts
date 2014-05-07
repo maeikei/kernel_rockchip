@@ -105,6 +105,23 @@
 
 &i2c2 {
 	status = "okay";
+        cat66121@4c {
+		compatible = "ite,cat66121";
+		reg = <0x4c>;
+		rockchips,hdmi_irq_gpio = <&gpio2 GPIO_D6 GPIO_ACTIVE_LOW>;
+
+		power_ctr_hdmi {
+			rockchip,debug = <1>;
+
+			reset-gpio {
+				rockchip,power_type = <GPIO>;
+				rockchip,is_reset = <1>;
+				rockchip,delay = <10>;
+
+				gpios = <&gpio3 GPIO_B2 GPIO_ACTIVE_LOW>;
+			};
+		};
+        };
 };
 
 &i2c3 {
