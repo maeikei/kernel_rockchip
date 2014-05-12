@@ -132,6 +132,25 @@
 	rockchip,disp-mode = <DUAL>;
 };
 
+&rk_screen {
+	display-timings {
+		native-mode = <&timing0>;
+		timing0: 1280x720 {
+			screen-type = <SCREEN_RGB>;
+			out-face = <OUT_P888>;
+			hactive = <1280>;
+			vactive = <720>;
+			clock-frequency = <27000000>;
+			hback-porch = <0>;
+			hfront-porch = <0>;
+			hsync-len = <0>;
+			vback-porch = <0>;
+			vfront-porch = <0>;
+			vsync-len = <0>;
+		};
+	};
+};
+
 &lcdc0 {
 	status = "okay";
 };
