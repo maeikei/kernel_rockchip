@@ -1,0 +1,319 @@
+/dts-v1/;
+
+#include "rk3188.dtsi"
+
+/ {
+	memory {
+		device_type = "memory";
+		reg = <0x60000000 0x80000000>;
+	};
+
+	chosen {
+		bootargs = "clk_ignore_unused";
+	};
+
+	fiq-debugger {
+		status = "okay";
+	};
+
+	wireless-wlan {
+		compatible = "wlan-platdata";
+
+		wifi_chip_type = "";
+
+		WIFI,poweren_gpio = <&gpio3 GPIO_A0 GPIO_ACTIVE_HIGH>;
+
+		status = "okay";
+	};
+
+	backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm3 0 25000>;
+		brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255>;
+		default-brightness-level = <128>;
+		enable-gpios = <&gpio0 GPIO_A2 GPIO_ACTIVE_HIGH>;
+	};
+
+	codec_hdmi_i2s: codec-hdmi-i2s {
+		compatible = "hdmi-i2s";
+	};
+
+	codec_hdmi_spdif: codec-hdmi-spdif {
+		compatible = "hdmi-spdif";
+	};
+
+	rockchip-hdmi-i2s {
+		compatible = "rockchip-hdmi-i2s";
+		dais {
+			dai0 {
+				audio-codec = <&codec_hdmi_i2s>;
+				i2s-controller = <&i2s0>;
+				format = "i2s";
+				//continuous-clock;
+				//bitclock-inversion;
+				//frame-inversion;
+				//bitclock-master;
+				//frame-master;
+			};
+		};
+	};
+
+	rockchip-hdmi-spdif {
+		compatible = "rockchip-hdmi-spdif";
+	};
+	
+	vmac-phy {
+		compatible = "rockchip,vmac-phy";
+		pmu_regulator = "act_ldo5";
+		pmu_enable_level = <1>; //1->HIGH, 0->LOW
+	};
+};
+
+&uart0 {
+	status = "okay";
+	dma-names = "!tx", "!rx";
+};
+
+
+&uart3 {
+	status = "okay";
+	dma-names = "!tx", "!rx";
+};
+
+&watchdog {
+		rockchip,timeout = <50>;
+		rockchip,debug = <1>;
+		status = "disabled";
+};
+
+&i2c0 {
+	status = "okay";
+};
+
+&i2c1 {
+	status = "okay";
+	rtc@51 {
+		compatible = "nxp,pcf8563";
+		reg = <0x51>;
+	};
+	
+	act8846: act8846@5a {
+		reg = <0x5a>;
+		status = "okay";
+	};
+};
+
+&i2c2 {
+	status = "okay";
+        cat66121@4c {
+		compatible = "ite,cat66121";
+		reg = <0x4c>;
+		rockchips,hdmi_irq_gpio = <&gpio2 GPIO_D6 GPIO_ACTIVE_LOW>;
+
+		power_ctr_hdmi {
+			rockchip,debug = <1>;
+
+			reset-gpio {
+				rockchip,power_type = <GPIO>;
+				rockchip,is_reset = <1>;
+				rockchip,delay = <10>;
+
+				gpios = <&gpio3 GPIO_B2 GPIO_ACTIVE_LOW>;
+			};
+		};
+        };
+};
+
+&i2c3 {
+	status = "okay";
+};
+
+&fb {
+	rockchip,disp-mode = <DUAL>;
+};
+
+&rk_screen {
+	display-timings {
+		native-mode = <&timing0>;
+		timing0: 1280x720 {
+			screen-type = <SCREEN_RGB>;
+			out-face = <OUT_P888>;
+			hactive = <1280>;
+			vactive = <720>;
+			clock-frequency = <27000000>;
+			hback-porch = <0>;
+			hfront-porch = <0>;
+			hsync-len = <0>;
+			vback-porch = <0>;
+			vfront-porch = <0>;
+			vsync-len = <0>;
+		};
+	};
+};
+
+&lcdc0 {
+	status = "okay";
+};
+
+&lcdc1 {
+	status = "okay";
+};
+
+&adc {
+	status = "okay";
+
+	key {
+		compatible = "rockchip,key";
+		io-channels = <&adc 1>;
+
+		power-key {
+			gpios = <&gpio0 GPIO_A4 GPIO_ACTIVE_LOW>;
+			linux,code = <116>;
+			label = "power";
+			gpio-key,wakeup;
+		};
+	};
+};
+
+&pwm3 {
+	status = "okay";
+};
+
+&clk_core_dvfs_table {
+	operating-points = <
+		/* KHz    uV */
+		312000 1100000
+		504000 1100000
+		816000 1100000
+		1008000 1100000
+		1200000 1200000
+		1416000 1300000
+		1608000 1350000
+		>;
+};
+
+&clk_gpu_dvfs_table {
+	operating-points = <
+		/* KHz    uV */
+		200000 1200000
+		300000 1200000
+		400000 1200000
+		>;
+};
+
+&clk_ddr_dvfs_table {
+	operating-points = <
+		/* KHz    uV */
+		200000 1200000
+		300000 1200000
+		400000 1200000
+		>;
+
+	freq_table = <
+		/*status		freq(KHz)*/
+		SYS_STATUS_NORMAL	400000
+		SYS_STATUS_SUSPEND	200000
+		SYS_STATUS_VIDEO	300000
+		SYS_STATUS_DUALVIEW	500000
+		>;
+};
+
+/include/ "act8846.dtsi"
+&act8846 {
+	gpios =<&gpio3 GPIO_D3 GPIO_ACTIVE_LOW>; 
+
+regulators {
+		
+		 dcdc1_reg: regulator@0{
+			regulator-name= "act_dcdc1";
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		dcdc2_reg: regulator@1 {
+			regulator-name= "vdd_logic";
+			regulator-always-on;
+			regulator-boot-on;			
+		};
+
+		dcdc3_reg: regulator@2 {
+			regulator-name= "vdd_arm";
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		dcdc4_reg: regulator@3 {
+			regulator-name= "vccio";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo1_reg: regulator@4 {
+			regulator-name= "act_ldo1";
+			regulator-min-microvolt = <1000000>;
+			regulator-max-microvolt = <1000000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo2_reg: regulator@5 {
+			regulator-name= "act_ldo2";
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo3_reg: regulator@6 {
+			regulator-name= "act_ldo3";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo4_reg:regulator@7 {
+			regulator-name= "act_ldo4";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo5_reg: regulator@8 {
+			regulator-name= "act_ldo5";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo6_reg: regulator@9 {
+			regulator-name= "act_ldo6";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo7_reg: regulator@10 {
+			regulator-name= "act_ldo7";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
+		ldo8_reg: regulator@11 {
+			regulator-name= "act_ldo8";
+			regulator-min-microvolt = <2800000>;
+			regulator-max-microvolt = <2800000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+	};
+};
